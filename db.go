@@ -16,6 +16,7 @@ type SqlxDB = *sqlx.DB
 type DelFn func(where *Sql)
 type SaveFn func(where *Sql)
 type SelectFn func(sel *Sql, where *Sql)
+type AddFn func(q *Sql)
 
 var DB *Database
 var DefaultDB SqlType
@@ -30,14 +31,14 @@ func (s *Database) Init(db SqlxDB) error {
 	return nil
 }
 
-func (s *Database) Add(table string, row any) *SqlResult {
+func (s *Database) Add(table string, row any, fn ...AddFn) *SqlResult {
 	if table == "" {
 		panic("table is empty")
 	}
 
 	v, ok := row.(map[string]any)
 	if ok {
-		return s.AddMap(table, v)
+		return s.AddMap(table, v, fn...)
 	}
 
 	vf := reflect.ValueOf(row)
@@ -49,10 +50,10 @@ func (s *Database) Add(table string, row any) *SqlResult {
 		panic("row is zero")
 	}
 
-	return s.AddStruct(table, row)
+	return s.AddStruct(table, row, fn...)
 }
 
-func (s *Database) AddMap(table string, row map[string]any) *SqlResult {
+func (s *Database) AddMap(table string, row map[string]any, fn ...AddFn) *SqlResult {
 	var fields string
 	var values []any
 
@@ -65,10 +66,10 @@ func (s *Database) AddMap(table string, row map[string]any) *SqlResult {
 		values = append(values, value)
 	}
 
-	return s.AddRow(table, fields, values)
+	return s.AddRow(table, fields, values, fn...)
 }
 
-func (s *Database) AddStruct(table string, row any) *SqlResult {
+func (s *Database) AddStruct(table string, row any, fn ...AddFn) *SqlResult {
 	vf := reflect.ValueOf(row)
 	var fields string
 	var values []any
@@ -89,10 +90,10 @@ func (s *Database) AddStruct(table string, row any) *SqlResult {
 		}
 	}
 
-	return s.AddRow(table, fields, values)
+	return s.AddRow(table, fields, values, fn...)
 }
 
-func (s *Database) AddRow(table string, fields string, values []any) *SqlResult {
+func (s *Database) AddRow(table string, fields string, values []any, fn ...AddFn) *SqlResult {
 	if fields == "" {
 		panic("fields is empty")
 	}
@@ -101,8 +102,11 @@ func (s *Database) AddRow(table string, fields string, values []any) *SqlResult 
 	}
 
 	insert := NewSql(fmt.Sprintf("INSERT INTO %s(%s) VALUES(?)", table, fields), values)
-	query, args := s.toSql(insert)
+	if len(fn) > 0 {
+		fn[0](insert)
+	}
 
+	query, args := s.toSql(insert)
 	res, err := s.DB.Exec(query, args...)
 	if err != nil {
 		panic(err)

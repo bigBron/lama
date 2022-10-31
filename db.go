@@ -427,7 +427,7 @@ func (s *Field) MarshalJSON() ([]byte, error) {
 		case "INTEGER", "INT", "SMALLINT", "TINYINT", "MEDIUMINT", "BIGINT",
 			"INT2", "INT4", "INT8":
 			val = s.Int()
-		case "CHAR", "VARCHAR", "BINARY", "VARBINARY", "BLOB", "TEXT", "ENUM", "SET":
+		case "CHAR", "VARCHAR", "BINARY", "VARBINARY", "BLOB", "TEXT", "ENUM", "SET", "JSON":
 			val = s.String()
 		case "DATE", "TIME", "DATETIME", "TIMESTAMP", "YEAR",
 			"TIMETZ", "TIMESTAMPTZ":

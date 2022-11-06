@@ -81,7 +81,7 @@ func (s *Web) RegisterAll(servList []any) *Web {
 // Run 运行web服务
 func (s *Web) Run() {
 	logLevel := endure.ErrorLevel
-	if Conf.GetBool("app.debug") {
+	if Conf.GetBool("app.debugContainer") {
 		logLevel = endure.DebugLevel
 	}
 

@@ -11,11 +11,6 @@ type Recover struct {
 	debug bool
 }
 
-func (s *Recover) Init() error {
-	s.debug = NewConf().GetBool("app.debug")
-	return nil
-}
-
 func (s *Recover) UseGlobal() iris.Handler {
 	return func(ctx *context.Context) {
 		defer func() {

@@ -5,7 +5,6 @@ import (
 	"github.com/kataras/iris/v12/core/router"
 	"github.com/kataras/iris/v12/middleware/accesslog"
 	"github.com/kataras/iris/v12/middleware/cors"
-	"github.com/kataras/iris/v12/middleware/recover"
 	"github.com/kataras/iris/v12/middleware/requestid"
 	"github.com/kataras/iris/v12/mvc"
 )
@@ -29,11 +28,19 @@ var App IRISApp
 
 func NewIRISApp() IRISApp {
 	if App == nil {
+		cfg := NewConf()
 		App = iris.New()
 
+		if cfg.GetBool("app.accesslog") {
+			App.UseRouter(accesslog.New(Print.Printer).Handler)
+		}
+
+		if cfg.GetBool("app.recover") {
+			r := &Recover{debug: cfg.GetBool("app.debug")}
+			App.UseRouter(r.UseGlobal())
+		}
+
 		App.UseRouter(requestid.New())
-		App.UseRouter(accesslog.New(Print.Printer).Handler)
-		App.UseRouter(recover.New())
 		App.UseRouter(cors.New().
 			ExtractOriginFunc(cors.DefaultOriginExtractor).
 			ReferrerPolicy(cors.NoReferrerWhenDowngrade).

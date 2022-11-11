@@ -24,10 +24,7 @@ func initCfg() {
 	gookit.AddDriver(toml.Driver)
 	if Conf == nil {
 		Conf = gookit.Default()
-
-		cfgF := GetWorkerDir() + "/cfg.toml"
-		err := Conf.LoadFiles(cfgF)
-
+		err := Conf.LoadFromDir(GetWorkerDir(), "json")
 		if err != nil {
 			log.Fatal(err)
 		}

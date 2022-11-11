@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/emirpasic/gods v1.18.1
-	github.com/gookit/config/v2 v2.1.7
+	github.com/gookit/config/v2 v2.1.8-0.20221111022649-a5a75e7709ec
 	github.com/gookit/validate v1.4.4
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/kataras/golog v0.1.7

@@ -24,6 +24,10 @@ func initCfg() {
 	gookit.AddDriver(toml.Driver)
 	if Conf == nil {
 		Conf = gookit.Default()
+		Conf.WithOptions(func(opt *gookit.Options) {
+			opt.DecoderConfig.TagName = "cfg"
+		})
+
 		err := Conf.LoadFromDir(GetWorkerDir(), "json")
 		if err != nil {
 			log.Fatal(err)

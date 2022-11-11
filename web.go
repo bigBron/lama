@@ -81,12 +81,13 @@ func (s *Web) RegisterAll(servList []any) *Web {
 // Run 运行web服务
 func (s *Web) Run() {
 	logLevel := endure.ErrorLevel
-	if Conf.GetBool("app.debugContainer") {
+	if Conf.Bool("app.debugContainer") {
 		logLevel = endure.DebugLevel
 	}
 
 	// 创建容器
-	app, err := endure.NewContainer(nil, endure.SetLogLevel(logLevel), endure.GracefulShutdownTimeout(time.Second*Conf.GetDuration("app.shutdownTimeout")))
+	timeout := time.Duration(Conf.Int64("app.shutdownTimeout"))
+	app, err := endure.NewContainer(nil, endure.SetLogLevel(logLevel), endure.GracefulShutdownTimeout(time.Second*timeout))
 	if err != nil {
 		Print.Fatal(err)
 	}

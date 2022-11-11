@@ -27,7 +27,7 @@ type PGConf struct {
 }
 
 func (s *PG) Init() error {
-	err := Conf.UnmarshalKey("pg", &s.cfg)
+	err := Conf.Structure("pg", &s.cfg)
 	if err != nil {
 		return err
 	}

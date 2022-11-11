@@ -28,7 +28,7 @@ func initCfg() {
 			opt.DecoderConfig.TagName = "json"
 		})
 
-		err := Conf.LoadFromDir(GetWorkerDir(), "json")
+		err := Conf.LoadFiles(GetWorkerDir() + "/cfg.json")
 		if err != nil {
 			log.Fatal(err)
 		}

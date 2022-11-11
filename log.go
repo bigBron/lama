@@ -20,7 +20,11 @@ func (s *Logger) Init() error {
 func NewLog() Log {
 	if Print == nil {
 		Print = golog.Default
-		Print.SetLevel(NewConf().GetString("app.logLevel"))
+		level := "debug"
+		if Conf != nil {
+			level = Conf.String("app.logLevel")
+		}
+		Print.SetLevel(level)
 	}
 	return Print
 }

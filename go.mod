@@ -32,11 +32,13 @@ require (
 	github.com/gobwas/ws v1.1.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
+	github.com/gookit/config/v2 v2.1.7 // indirect
 	github.com/gookit/filter v1.1.3 // indirect
-	github.com/gookit/goutil v0.5.9 // indirect
+	github.com/gookit/goutil v0.5.15 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/iris-contrib/go.uuid v2.0.0+incompatible // indirect
 	github.com/iris-contrib/schema v0.0.6 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
@@ -51,6 +53,7 @@ require (
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mailgun/raymond/v2 v2.0.47 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mediocregopher/radix/v3 v3.8.0 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.21 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect

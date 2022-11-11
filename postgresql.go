@@ -26,6 +26,10 @@ type PGConf struct {
 	Timezone string `json:"timezone" validate:"required"`
 }
 
+func (s *PG) Name() string {
+	return "PG"
+}
+
 func (s *PG) Init() error {
 	err := Conf.Structure("pg", &s.cfg)
 	if err != nil {

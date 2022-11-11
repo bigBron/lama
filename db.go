@@ -211,7 +211,9 @@ func (s *Database) toSql(sql *Sql) (query string, args []any) {
 	} else {
 		panic("error DefaultDB")
 	}
-	Print.Info(query)
+	if Conf.Bool("app.showSql") {
+		Print.Info(query)
+	}
 	return
 }
 

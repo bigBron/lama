@@ -25,7 +25,7 @@ func initCfg() {
 	if Conf == nil {
 		Conf = gookit.Default()
 		Conf.WithOptions(func(opt *gookit.Options) {
-			opt.DecoderConfig.TagName = "cfg"
+			opt.DecoderConfig.TagName = "json"
 		})
 
 		err := Conf.LoadFromDir(GetWorkerDir(), "json")

@@ -15,15 +15,15 @@ type PG struct {
 }
 
 type PGConf struct {
-	Host     string `validate:"required"`
-	Port     int    `validate:"required"`
-	User     string `validate:"required"`
-	Passwd   string `validate:"required"`
-	DBName   string `validate:"required"`
-	MinConn  int    `validate:"required"`
-	PoolSize int    `validate:"required"`
-	Timeout  int    `validate:"required"`
-	Timezone string `validate:"required"`
+	Host     string `json:"host" validate:"required"`
+	Port     int    `json:"port" validate:"required"`
+	User     string `json:"user" validate:"required"`
+	Passwd   string `json:"passwd" validate:"required"`
+	DBName   string `json:"dbname" validate:"required"`
+	MinConn  int    `json:"minConn" validate:"required"`
+	PoolSize int    `json:"poolSize" validate:"required"`
+	Timeout  int    `json:"timeout" validate:"required"`
+	Timezone string `json:"timezone" validate:"required"`
 }
 
 func (s *PG) Init() error {

@@ -28,15 +28,14 @@ var App IRISApp
 
 func NewIRISApp() IRISApp {
 	if App == nil {
-		cfg := NewConf()
 		App = iris.New()
 
-		if cfg.GetBool("app.accesslog") {
+		if Conf.Bool("app.accesslog") {
 			App.UseRouter(accesslog.New(Print.Printer).Handler)
 		}
 
-		if cfg.GetBool("app.recover") {
-			r := &Recover{debug: cfg.GetBool("app.debug")}
+		if Conf.Bool("app.recover") {
+			r := &Recover{debug: Conf.Bool("app.debug")}
 			App.UseRouter(r.UseGlobal())
 		}
 
@@ -48,7 +47,7 @@ func NewIRISApp() IRISApp {
 			Handler())
 
 		var disableStartupLog bool
-		debug := Conf.GetBool("app.debug")
+		debug := Conf.Bool("app.debug")
 		if !debug {
 			disableStartupLog = true
 		}

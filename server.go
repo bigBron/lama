@@ -47,16 +47,14 @@ func (p *Plugin) Init( ) error {
 }
 */
 
-type Web struct {
+type Srv struct {
 	list []any
 }
 
-// NewWeb 实例化web服务
-func NewWeb() *Web {
-	return &Web{
+// NewSrv 实例化server服务
+func NewSrv() *Srv {
+	return &Srv{
 		list: []any{
-			&Http{},
-			&Action{},
 			&Config{},
 			&Logger{},
 		},
@@ -64,13 +62,13 @@ func NewWeb() *Web {
 }
 
 // Register 注册服务
-func (s *Web) Register(serv any) *Web {
+func (s *Srv) Register(serv any) *Srv {
 	s.list = append(s.list, serv)
 	return s
 }
 
 // RegisterAll 批量注册服务
-func (s *Web) RegisterAll(servList []any) *Web {
+func (s *Srv) RegisterAll(servList []any) *Srv {
 	s.list = append(
 		s.list,
 		servList...,
@@ -79,7 +77,7 @@ func (s *Web) RegisterAll(servList []any) *Web {
 }
 
 // Run 运行web服务
-func (s *Web) Run() {
+func (s *Srv) Run() {
 	logLevel := endure.ErrorLevel
 	if Conf.Bool("app.debugContainer") {
 		logLevel = endure.DebugLevel

@@ -31,8 +31,7 @@ type Srv struct {
 func NewSrv() *Srv {
 	return &Srv{
 		services: []any{
-			&Config{},
-			&Logger{},
+			&provide{},
 		},
 	}
 }

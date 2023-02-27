@@ -22,13 +22,19 @@ var DB *Database
 var DefaultDB SqlType
 
 type Database struct {
-	DB SqlxDB
+	db SqlxDB
 }
 
-func (s *Database) Init(db SqlxDB) error {
-	s.DB = db
+func (s *Database) Init(db SqlxDB) {
 	DB = s
-	return nil
+	s.db = db
+}
+
+func (s *Database) GetDB() SqlxDB {
+	if s.db == nil {
+		panic("failed to init db")
+	}
+	return s.db
 }
 
 func (s *Database) Add(table string, row any, fn ...AddFn) *SqlResult {
@@ -78,7 +84,7 @@ func (s *Database) AddStruct(table string, row any, fn ...AddFn) *SqlResult {
 	for i := 0; i < elem.NumField(); i++ {
 		v := elem.Field(i)
 		t := elem.Type().Field(i)
-		field := t.Tag.Get("db")
+		field := t.Tag.Get("GetDB")
 		if t.IsExported() && !t.Anonymous && field != "" && !v.IsZero() {
 			if fields == "" {
 				fields = field
@@ -107,7 +113,7 @@ func (s *Database) AddRow(table string, fields string, values []any, fn ...AddFn
 	}
 
 	query, args := s.toSql(insert)
-	res, err := s.DB.Exec(query, args...)
+	res, err := s.GetDB().Exec(query, args...)
 	if err != nil {
 		panic(err)
 	}
@@ -162,7 +168,7 @@ func (s *Database) SaveStruct(table string, row any, fn SaveFn) *SqlResult {
 	for i := 0; i < elem.NumField(); i++ {
 		v := elem.Field(i)
 		t := elem.Type().Field(i)
-		field := t.Tag.Get("db")
+		field := t.Tag.Get("GetDB")
 		if t.IsExported() && !t.Anonymous && field != "" && !v.IsZero() {
 			fields = append(fields, field)
 			values = append(values, v.Interface())
@@ -196,7 +202,7 @@ func (s *Database) SaveRow(table string, fields []string, values []any, where *S
 	}
 
 	query, args := s.toSql(NewSql("? ?", update, where))
-	res, err := s.DB.Exec(query, args...)
+	res, err := s.GetDB().Exec(query, args...)
 	if err != nil {
 		panic(err)
 	}
@@ -230,7 +236,7 @@ func (s *Database) Del(table string, fn DelFn) *SqlResult {
 
 	del := NewSql("? ?", from, where)
 	query, args := s.toSql(del)
-	res, err := s.DB.Exec(query, args...)
+	res, err := s.GetDB().Exec(query, args...)
 	if err != nil {
 		panic(err)
 	}
@@ -255,7 +261,7 @@ func (s *Database) querySql(table string, fn SelectFn) (string, []any) {
 
 func (s *Database) Select(table string, fn SelectFn) (rows Rows) {
 	query, args := s.querySql(table, fn)
-	res, err := s.DB.Queryx(query, args...)
+	res, err := s.GetDB().Queryx(query, args...)
 	defer res.Close()
 	if err != nil {
 		panic(err)
@@ -283,7 +289,7 @@ func (s *Database) Select(table string, fn SelectFn) (rows Rows) {
 
 func (s *Database) Get(table string, fn SelectFn) (row *Row) {
 	query, args := s.querySql(table, fn)
-	res := s.DB.QueryRowx(query, args...)
+	res := s.GetDB().QueryRowx(query, args...)
 
 	cols, err := res.Columns()
 	colTypes, err := res.ColumnTypes()
@@ -309,8 +315,8 @@ func (s *Database) Get(table string, fn SelectFn) (row *Row) {
 
 type Rows []*Row
 
-var ErrRowEmpty = errors.New("db: row is empty")
-var ErrFieldNotExist = errors.New("db: field not exist")
+var ErrRowEmpty = errors.New("GetDB: row is empty")
+var ErrFieldNotExist = errors.New("GetDB: field not exist")
 
 func NewRow() *Row {
 	return &Row{linkedhashmap.New()}

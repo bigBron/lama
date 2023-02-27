@@ -4,57 +4,33 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
-
-	endure "github.com/roadrunner-server/endure/pkg/container"
 )
 
 /**
-容器接口说明：
-type (
-	// 服务生命周期接口
-	Service interface {
-		// 启动服务时候调用
-		Serve() chan error
-		// 关闭服务时候调用
-		Stop() error
-	}
+// 服务接口
+type Services interface (
+	// 提供依赖项，可以返回一个或者多个依赖项，可选
+	Provide() provide,...
 
-	// 服务名称
-	Named interface {
-		Name() string
-	}
+	// 初始化服务，可选
+	Init() error
 
-	// 提供额外依赖，返回一个函数列表
-	// 函数接受调用者名称参数，并返回依赖跟error，error可以省略
-	Provider interface {
-		Provides() []interface{ fn(name endure.Named) (指针依赖, error) }
-	}
+	// 启动服务时候调用，可选
+	Serve() error
 
-	// 获取容器中匹配接口实例，返回一个函数列表
-	// 函数接受匹配的依赖，并返回error
-	Collector interface {
-		Collects() []interface{ fn(依赖) error }
-	}
+	// 关闭服务时候调用，可选
+	Stop() error
 )
-
-// 插件接口
-type Plugin struct{}
-
-// 初始化方法，必须实现
-func (p *Plugin) Init( ) error {
-	return nil
-}
 */
 
 type Srv struct {
-	list []any
+	services []any
 }
 
 // NewSrv 实例化server服务
 func NewSrv() *Srv {
 	return &Srv{
-		list: []any{
+		services: []any{
 			&Config{},
 			&Logger{},
 		},
@@ -62,36 +38,17 @@ func NewSrv() *Srv {
 }
 
 // Register 注册服务
-func (s *Srv) Register(serv any) *Srv {
-	s.list = append(s.list, serv)
+func (s *Srv) Register(services ...any) *Srv {
+	for _, srv := range services {
+		s.services = append(s.services, srv)
+	}
 	return s
 }
 
-// RegisterAll 批量注册服务
-func (s *Srv) RegisterAll(servList []any) *Srv {
-	s.list = append(
-		s.list,
-		servList...,
-	)
-	return s
-}
-
-// Run 运行web服务
+// Run 运行服务
 func (s *Srv) Run() {
-	logLevel := endure.ErrorLevel
-	if Conf.Bool("app.debugContainer") {
-		logLevel = endure.DebugLevel
-	}
-
-	// 创建容器
-	timeout := time.Duration(Conf.Int64("app.shutdownTimeout"))
-	app, err := endure.NewContainer(nil, endure.SetLogLevel(logLevel), endure.GracefulShutdownTimeout(time.Second*timeout))
-	if err != nil {
-		Print.Fatal(err)
-	}
-
-	// 注册服务
-	err = app.RegisterAll(s.list...)
+	app := NewAda()
+	err := app.Register(s.services...)
 	if err != nil {
 		Print.Fatal(err)
 	}
@@ -103,7 +60,7 @@ func (s *Srv) Run() {
 	}
 
 	// 启动服务
-	errCh, err := app.Serve()
+	err = app.Serve()
 	if err != nil {
 		Print.Fatal(err)
 	}
@@ -114,14 +71,8 @@ func (s *Srv) Run() {
 
 	for {
 		select {
-		case err := <-errCh:
-			Print.Debug(err.Error)
-			er := app.Stop() // 出现错误，停止服务
-			if er != nil {
-				Print.Fatal(er)
-			}
 		case <-stop:
-			er := app.Stop() // 停止服务
+			er := app.Stop()
 			if er != nil {
 				Print.Fatal(er)
 			}

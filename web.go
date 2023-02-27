@@ -50,8 +50,6 @@ func (s *Web) Register(services ...any) *Web {
 // Run 运行web服务
 func (s *Web) Run() {
 	app := NewAda()
-
-	// 注册服务
 	err := app.Register(s.services...)
 	if err != nil {
 		Print.Fatal(err)

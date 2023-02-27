@@ -3,6 +3,7 @@ package lama
 import (
 	"fmt"
 	"reflect"
+	"sync"
 )
 
 // NewAda returns a new instance of Ada.
@@ -90,7 +91,9 @@ func (s *Ada) Init() error {
 }
 
 // Serve calls the Serve method of all registered services.
-func (s *Ada) Serve() error {
+func (s *Ada) Serve() <-chan error {
+	wg := sync.WaitGroup{}
+	out := make(chan error)
 	for _, srv := range s.services {
 		method := srv.MethodByName("Serve")
 		if !method.IsValid() {
@@ -104,16 +107,39 @@ func (s *Ada) Serve() error {
 		if numIn == 0 && numOut == 1 {
 			returnTyp := typ.Out(0)
 			eType := reflect.TypeOf((*error)(nil)).Elem()
+			ecType := reflect.TypeOf((chan error)(nil))
 
 			if returnTyp.AssignableTo(eType) {
+				wg.Add(1)
 				itf := method.Call([]reflect.Value{})[0].Interface()
 				if itf != nil {
-					return itf.(error)
+					out <- itf.(error)
+				}
+				wg.Done()
+
+			} else if returnTyp.AssignableTo(ecType) {
+				wg.Add(1)
+				itf := method.Call([]reflect.Value{})[0].Interface()
+				if itf != nil {
+					go func() {
+						for err := range itf.(chan error) {
+							out <- err
+						}
+						wg.Done()
+					}()
+				} else {
+					wg.Done()
 				}
 			}
 		}
 	}
-	return nil
+
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
+
+	return out
 }
 
 // Stop calls the Stop method of all registered services.

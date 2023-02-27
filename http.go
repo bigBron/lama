@@ -12,10 +12,6 @@ func init() {
 type Http struct {
 }
 
-func (s *Http) Init() error {
-	return nil
-}
-
 // Serve 启动核心
 func (s *Http) Serve() chan error {
 	errCh := make(chan error, 1)

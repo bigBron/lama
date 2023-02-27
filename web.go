@@ -62,10 +62,7 @@ func (s *Web) Run() {
 	}
 
 	// 启动服务
-	err = app.Serve()
-	if err != nil {
-		Print.Fatal(err)
-	}
+	errCh := app.Serve()
 
 	// 监听中断信号
 	stop := make(chan os.Signal, 1)
@@ -73,6 +70,12 @@ func (s *Web) Run() {
 
 	for {
 		select {
+		case err := <-errCh:
+			Print.Debug(err.Error)
+			er := app.Stop() // 出现错误，停止服务
+			if er != nil {
+				Print.Fatal(er)
+			}
 		case <-stop:
 			er := app.Stop()
 			if er != nil {

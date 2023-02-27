@@ -40,9 +40,10 @@ func NewWeb() *Web {
 
 // Register 注册服务
 func (s *Web) Register(services ...any) *Web {
-	for _, srv := range services {
-		s.services = append(s.services, srv)
+	for _, srv := range s.services {
+		services = append(services, srv)
 	}
+	s.services = services
 	return s
 }
 

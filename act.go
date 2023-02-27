@@ -16,10 +16,6 @@ type NewParty func(string, ...iris.Handler) router.Party
 type Version func(string) mvc.OptionFunc
 type Deprecated func(mvc.DeprecationOptions) mvc.OptionFunc
 
-type UseGlobalMiddleware interface {
-	UseGlobal() iris.Handler
-}
-
 type Act *Action
 type IRISApp = *iris.Application
 type MVCApp = *mvc.Application
@@ -36,7 +32,7 @@ func NewIRISApp() IRISApp {
 
 		if Conf.Bool("app.recover") {
 			r := &Recover{debug: Conf.Bool("app.debug")}
-			App.UseRouter(r.UseGlobal())
+			r.Init(App)
 		}
 
 		App.UseRouter(requestid.New())
@@ -68,62 +64,17 @@ func NewIRISApp() IRISApp {
 }
 
 type Action struct {
-	IRISApp IRISApp
 }
 
-func (s *Action) Init() error {
-	s.IRISApp = NewIRISApp()
-	return nil
-}
-
-func (s *Action) UseGlobalMiddleware(middle UseGlobalMiddleware) {
-	s.IRISApp.UseGlobal(middle.UseGlobal())
-}
-
-func (s *Action) Collects() []any {
-	return []any{
-		s.UseGlobalMiddleware,
+func (s *Action) Provide() (IRISApp, NewMvcApp, Version, Deprecated, NewParty, NewMvc) {
+	app := NewIRISApp()
+	newMvc := func(path string) MVCApp {
+		return mvc.New(app.APIBuilder.Party(path))
 	}
-}
-
-func (s *Action) ProvideApp() IRISApp {
-	return s.IRISApp
-}
-
-func (s *Action) ProvideVersion() Version {
-	return mvc.Version
-}
-
-func (s *Action) ProvideDeprecated() Deprecated {
-	return mvc.Deprecated
-}
-
-func (s *Action) ProvideNewParty() NewParty {
-	return s.IRISApp.APIBuilder.Party
-}
-
-func (s *Action) ProvideNewMvc() NewMvc {
-	return func(path string) MVCApp {
-		return mvc.New(s.IRISApp.APIBuilder.Party(path))
-	}
-}
-
-func (s *Action) ProvideNewMvcApp() NewMvcApp {
-	return mvc.New
-}
-
-func (s *Action) ProvideAct() Act {
-	return s
-}
-
-func (s *Action) Provides() []any {
-	return []any{
-		s.ProvideApp,
-		s.ProvideVersion,
-		s.ProvideDeprecated,
-		s.ProvideNewParty,
-		s.ProvideNewMvc,
-		s.ProvideNewMvcApp,
-		s.ProvideAct,
-	}
+	return app,
+		mvc.New,
+		mvc.Version,
+		mvc.Deprecated,
+		app.APIBuilder.Party,
+		newMvc
 }

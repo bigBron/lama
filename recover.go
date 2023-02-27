@@ -2,7 +2,6 @@ package lama
 
 import (
 	"github.com/gookit/validate"
-	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/context"
 	"time"
 )
@@ -11,8 +10,8 @@ type Recover struct {
 	debug bool
 }
 
-func (s *Recover) UseGlobal() iris.Handler {
-	return func(ctx *context.Context) {
+func (s *Recover) Init(app IRISApp) error {
+	app.UseGlobal(func(ctx *context.Context) {
 		defer func() {
 			if err := recover(); err != nil {
 				if ctx.IsStopped() { // handled by other middleware.
@@ -49,5 +48,6 @@ func (s *Recover) UseGlobal() iris.Handler {
 			}
 		}()
 		ctx.Next()
-	}
+	})
+	return nil
 }

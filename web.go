@@ -69,11 +69,13 @@ func (s *Web) Run() {
 
 	for {
 		select {
-		case err := <-errCh:
-			Print.Debug(err.Error)
-			er := app.Stop() // 出现错误，停止服务
-			if er != nil {
-				Print.Fatal(er)
+		case e := <-errCh:
+			if e != nil {
+				Print.Debug(e.Error)
+				er := app.Stop() // 出现错误，停止服务
+				if er != nil {
+					Print.Fatal(er)
+				}
 			}
 		case <-stop:
 			er := app.Stop()

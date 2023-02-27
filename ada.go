@@ -45,22 +45,34 @@ func (s *Ada) Services(service interface{}) error {
 
 	provideMethod := value.MethodByName("Provide")
 	if provideMethod.IsValid() {
-		provide := provideMethod.Type()
-		numIn := provide.NumIn()
+		provideTyp := provideMethod.Type()
+		numIn := provideTyp.NumIn()
 		if numIn > 0 {
 			return fmt.Errorf("provide method cannot accept parameters: %v", reflect.TypeOf(service))
 		}
-		numOut := provide.NumOut()
+		numOut := provideTyp.NumOut()
 		if numOut > 0 {
-			returnValues := provideMethod.Call([]reflect.Value{})
-			for _, returnValue := range returnValues {
-				if returnValue.Kind() != reflect.Ptr || returnValue.IsNil() {
-					return fmt.Errorf("provide value is not a valid pointer: %v", reflect.TypeOf(service))
+			values := provideMethod.Call([]reflect.Value{})
+			for idx, val := range values {
+				kind := val.Kind()
+				out := provideTyp.Out(idx)
+				name := out.String()
+
+				if !val.IsValid() || val.IsNil() {
+					return fmt.Errorf("provide value [%s] is not a valid in %v", name, reflect.TypeOf(service))
 				}
-				if returnValue.Elem().Type().Kind() != reflect.Struct {
-					return fmt.Errorf("provide value is not a valid struct: %v", reflect.TypeOf(service))
+
+				if kind == reflect.Ptr {
+					if val.Elem().Type().Kind() != reflect.Struct {
+						return fmt.Errorf("provide value [%s] is not a valid struct in %v", name, reflect.TypeOf(service))
+					}
+				} else {
+					if kind != reflect.Func {
+						return fmt.Errorf("provide value [%s] is not a valid pointer in %v", out.String(), reflect.TypeOf(service))
+					}
 				}
-				s.values[returnValue.Type()] = returnValue
+
+				s.values[val.Type()] = val
 			}
 		}
 	}

@@ -32,7 +32,7 @@ func newLog() Log {
 		Print = golog.Default
 		level := "debug"
 		if Conf != nil {
-			level = Conf.String("app.logLevel")
+			level = Conf.String("app.logLevel", "debug")
 		}
 		Print.SetLevel(level)
 	}

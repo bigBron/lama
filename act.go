@@ -16,7 +16,6 @@ type NewParty func(string, ...iris.Handler) router.Party
 type Version func(string) mvc.OptionFunc
 type Deprecated func(mvc.DeprecationOptions) mvc.OptionFunc
 
-type Act *Action
 type IRISApp = *iris.Application
 type MVCApp = *mvc.Application
 
@@ -63,10 +62,10 @@ func NewIRISApp() IRISApp {
 	return App
 }
 
-type Action struct {
+type Act struct {
 }
 
-func (s *Action) Provide() (IRISApp, NewMvcApp, Version, Deprecated, NewParty, NewMvc) {
+func (s *Act) Provide() (IRISApp, NewMvcApp, Version, Deprecated, NewParty, NewMvc) {
 	app := NewIRISApp()
 	newMvc := func(path string) MVCApp {
 		return mvc.New(app.APIBuilder.Party(path))

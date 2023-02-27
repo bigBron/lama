@@ -31,10 +31,9 @@ type Web struct {
 func NewWeb() *Web {
 	return &Web{
 		services: []any{
+			&provide{},
+			&Act{},
 			&Http{},
-			&Action{},
-			&Config{},
-			&Logger{},
 		},
 	}
 }

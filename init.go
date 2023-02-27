@@ -3,13 +3,52 @@ package lama
 import (
 	gookit "github.com/gookit/config/v2"
 	"github.com/gookit/config/v2/toml"
+	"github.com/kataras/golog"
 	"log"
 	"os"
 	"path/filepath"
 )
 
 func init() {
-	initCfg()
+	newCfg()
+	newLog()
+}
+
+type Log = *golog.Logger
+type Cfg = *gookit.Config
+
+var Conf Cfg
+var Print Log
+
+type provide struct {
+}
+
+func (s *provide) Provide() (Cfg, Log) {
+	return Conf, Print
+}
+
+func newLog() Log {
+	if Print == nil {
+		Print = golog.Default
+		level := "debug"
+		if Conf != nil {
+			level = Conf.String("app.logLevel")
+		}
+		Print.SetLevel(level)
+	}
+	return Print
+}
+
+func newCfg() Cfg {
+	if Conf == nil {
+		gookit.AddDriver(toml.Driver)
+		Conf = gookit.Default()
+		Conf.WithOptions(func(opt *gookit.Options) {
+			opt.DecoderConfig.TagName = "json"
+		})
+		Conf.LoadFiles(GetWorkerDir() + "/cfg.json")
+	}
+	return Conf
 }
 
 func GetWorkerDir() string {
@@ -18,15 +57,4 @@ func GetWorkerDir() string {
 		log.Fatal(err)
 	}
 	return dir
-}
-
-func initCfg() {
-	gookit.AddDriver(toml.Driver)
-	if Conf == nil {
-		Conf = gookit.Default()
-		Conf.WithOptions(func(opt *gookit.Options) {
-			opt.DecoderConfig.TagName = "json"
-		})
-		Conf.LoadFiles(GetWorkerDir() + "/cfg.json")
-	}
 }

@@ -5,10 +5,6 @@ import (
 	"fmt"
 )
 
-func init() {
-	NewLog()
-}
-
 type Http struct {
 }
 

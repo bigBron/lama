@@ -71,22 +71,40 @@ func (s *Ada) Services(service interface{}) error {
 
 // Init initializes all registered services.
 func (s *Ada) Init() error {
+	eType := reflect.TypeOf((*error)(nil)).Elem()
 	for _, srv := range s.services {
-		initMethod := srv.MethodByName("Init")
-		if initMethod.IsValid() {
-			numIn := initMethod.Type().NumIn()
-			args := make([]reflect.Value, numIn)
-			for i := 0; i < numIn; i++ {
-				argType := initMethod.Type().In(i)
-				argValue, exists := s.values[argType]
-				if !exists {
-					return fmt.Errorf("missing dependency [%v] for service %s", argType, srv)
-				}
-				args[i] = argValue
+		method := srv.MethodByName("Init")
+		if !method.IsValid() {
+			continue
+		}
+
+		typ := method.Type()
+		numIn := typ.NumIn()
+		numOut := typ.NumOut()
+
+		args := make([]reflect.Value, numIn)
+
+		for i := 0; i < numIn; i++ {
+			argType := method.Type().In(i)
+			argValue, exists := s.values[argType]
+			if !exists {
+				return fmt.Errorf("missing dependency [%v] for service %s", argType, srv)
 			}
-			initMethod.Call(args)
+			args[i] = argValue
+		}
+
+		returnValue := method.Call(args)
+		if numOut > 0 {
+			returnTyp := typ.Out(0)
+			if returnTyp.AssignableTo(eType) {
+				itf := returnValue[0].Interface()
+				if itf != nil {
+					return itf.(error)
+				}
+			}
 		}
 	}
+
 	return nil
 }
 
@@ -94,6 +112,9 @@ func (s *Ada) Init() error {
 func (s *Ada) Serve() <-chan error {
 	wg := sync.WaitGroup{}
 	out := make(chan error)
+	eType := reflect.TypeOf((*error)(nil)).Elem()
+	ecType := reflect.TypeOf((chan error)(nil))
+
 	for _, srv := range s.services {
 		method := srv.MethodByName("Serve")
 		if !method.IsValid() {
@@ -106,9 +127,6 @@ func (s *Ada) Serve() <-chan error {
 
 		if numIn == 0 && numOut == 1 {
 			returnTyp := typ.Out(0)
-			eType := reflect.TypeOf((*error)(nil)).Elem()
-			ecType := reflect.TypeOf((chan error)(nil))
-
 			if returnTyp.AssignableTo(eType) {
 				wg.Add(1)
 				itf := method.Call([]reflect.Value{})[0].Interface()
